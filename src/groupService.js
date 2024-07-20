@@ -1,54 +1,68 @@
-import { db } from './firebase'; // Ensure 'db' is correctly imported
-import { doc, updateDoc, arrayUnion, arrayRemove, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { collection, addDoc, setDoc, doc, updateDoc, arrayUnion, arrayRemove, getDocs, getDoc, query, where, deleteDoc } from "firebase/firestore";
+import { db } from "./firebase"; // Ensure correct import of db
 
-// Define addUserToGroup function
-export const addUserToGroup = async (groupId, userId) => {
-  try {
-    const groupRef = doc(db, "Groups", groupId);
-    await updateDoc(groupRef, {
-      members: arrayUnion(userId),
-    });
-    console.log("User added to group with ID: ", groupId);
-  } catch (error) {
-    console.error("Error adding user to group: ", error);
+// Function to create a group
+export const createGroup = async (groupName, userId) => {
+  const groupRef = doc(collection(db, "Groups"));
+  await setDoc(groupRef, {
+    name: groupName,
+    createdAt: new Date(),
+    members: [userId],
+    owner: userId,
+  });
+  return groupRef.id;
+};
+
+// Function to send a request to add a user to a group
+export const addUserToGroup = async (groupId, email) => {
+  const userRef = query(collection(db, "Users"), where("email", "==", email));
+  const userSnap = await getDocs(userRef);
+  if (userSnap.empty) {
+    throw new Error("User not found");
+  }
+  const userId = userSnap.docs[0].id;
+
+  await addDoc(collection(db, "GroupRequests"), {
+    groupId,
+    email,
+    status: "Pending",
+  });
+};
+
+// Function to accept a group request
+export const acceptGroupRequest = async (requestId) => {
+  const requestRef = doc(db, "GroupRequests", requestId);
+  const requestSnap = await getDoc(requestRef);
+  if (requestSnap.exists()) {
+    const { groupId, email } = requestSnap.data();
+    const userRef = query(collection(db, "Users"), where("email", "==", email));
+    const userSnap = await getDocs(userRef);
+    if (!userSnap.empty) {
+      const userId = userSnap.docs[0].id;
+      await updateDoc(doc(db, "Groups", groupId), {
+        members: arrayUnion(userId),
+      });
+      await updateDoc(requestRef, { status: "Accepted" });
+    }
   }
 };
 
-// Define createGroup function
-export const createGroup = async (groupName, user) => {
-  try {
-    const groupRef = doc(db, "Groups", doc(collection(db, "Groups")).id); // Generate a unique ID
-    await setDoc(groupRef, {
-      name: groupName,
-      createdAt: serverTimestamp(),
-      members: [user.uid],
-    });
-    console.log("Group created with ID: ", groupRef.id);
-  } catch (error) {
-    console.error("Error creating group: ", error);
-  }
-};
-
-// Define removeUserFromGroup function
-export const removeUserFromGroup = async (groupId, userId) => {
-  try {
-    const groupRef = doc(db, "Groups", groupId);
+// Function to remove a user from a group
+export const removeUserFromGroup = async (groupId, userId, ownerId) => {
+  const groupRef = doc(db, "Groups", groupId);
+  const groupSnap = await getDoc(groupRef);
+  if (groupSnap.exists() && groupSnap.data().owner === ownerId) {
     await updateDoc(groupRef, {
       members: arrayRemove(userId),
     });
-    console.log("User removed from group with ID: ", groupId);
-  } catch (error) {
-    console.error("Error removing user from group: ", error);
   }
 };
 
-// Define deleteGroup function
-export const deleteGroup = async (groupId) => {
-  try {
-    const groupRef = doc(db, "Groups", groupId);
+// Function to delete a group
+export const deleteGroup = async (groupId, ownerId) => {
+  const groupRef = doc(db, "Groups", groupId);
+  const groupSnap = await getDoc(groupRef);
+  if (groupSnap.exists() && groupSnap.data().owner === ownerId) {
     await deleteDoc(groupRef);
-    console.log("Group deleted with ID: ", groupId);
-  } catch (error) {
-    console.error("Error deleting group: ", error);
   }
 };

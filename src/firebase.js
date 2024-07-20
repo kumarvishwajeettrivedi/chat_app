@@ -16,4 +16,6 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app); // Initialize Firestore
 
+
+
 export { app, db, analytics }; // Export db along with app and analytics
