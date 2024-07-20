@@ -1,7 +1,8 @@
 # Chat App
 
 A lightweight chat application built with React and Firebase for real-time communication. This app allows users to send and receive messages instantly and includes authentication and message storage features.
-![working image](https://raw.githubusercontent.com/kumarvishwajeettrivedi/chat_app/main/Screenshot%20from%202024-07-04%2018-18-29.png)
+![working image](https://raw.githubusercontent.com/kumarvishwajeettrivedi/chat_app/main/Screenshot%20from%202024-07-20%2020-12-31.png)
+
 
 ## Features
 - Real-time messaging
