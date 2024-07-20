@@ -29,3 +29,14 @@ A lightweight chat application built with React and Firebase for real-time commu
 
 ### export default firebaseConfig;
 
+## npm start
+
+## Deployment
+### Deploy the app to platforms like Vercel, Netlify, or Firebase Hosting using the instructions in the Create React App deployment guide.
+- Learn More
+- React Documentation
+- Firebase Documentation
+
+
+## License
+### This project is licensed under the MIT License.
